@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <defs>
+    <linearGradient id="fg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#00c8e6"/>
+      <stop offset="100%" stop-color="#a855f7"/>
+    </linearGradient>
+    <radialGradient id="cg" cx="50%" cy="42%" r="50%">
+      <stop offset="0%" stop-color="#00c8e6"/>
+      <stop offset="100%" stop-color="#a855f7"/>
+    </radialGradient>
+  </defs>
+  <!-- Background circle -->
+  <circle cx="50" cy="50" r="48" fill="#0b0d12"/>
+  <!-- Outer ring -->
+  <circle cx="50" cy="50" r="44" stroke="url(#fg)" stroke-width="3" fill="none" opacity="0.5"/>
+  <!-- Orbital ellipse -->
+  <ellipse cx="50" cy="50" rx="36" ry="12" stroke="url(#fg)" stroke-width="2" stroke-dasharray="8 5" fill="none" opacity="0.4" transform="rotate(30 50 50)"/>
+  <!-- Core glow -->
+  <circle cx="50" cy="50" r="22" fill="url(#cg)" opacity="0.9"/>
+  <!-- Checkmark -->
+  <polyline points="36,52 45,61 65,39" stroke="#fff" stroke-width="7" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  <!-- Orbiting dot -->
+  <circle cx="50" cy="4" r="4" fill="#00c8e6"/>
+</svg>
