@@ -1,0 +1,25 @@
+# OS files
+.DS_Store
+Thumbs.db
+Desktop.ini
+ehthumbs.db
+ehthumbs_vista.db
+
+# Editor / IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Node (in case npm is used later)
+node_modules/
+npm-debug.log*
+
+# Build outputs
+dist/
+build/
+
+# Misc
+*.log
+*.bak

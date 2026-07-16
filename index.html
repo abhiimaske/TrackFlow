@@ -6,6 +6,20 @@
   <title>Monthly Activity Tracker | TrackFlow</title>
   <link rel="icon" type="image/svg+xml" href="favicon.svg" />
   <meta name="description" content="Track daily habits for the whole month. Activities as rows, days grouped by weeks as columns. Visualize your consistency." />
+  <!-- Open Graph / Social Sharing -->
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="TrackFlow — Monthly Habit Tracker" />
+  <meta property="og:description" content="Track daily habits, build streaks, and visualize your consistency with a stunning dark dashboard." />
+  <meta property="og:url" content="https://abhiimaske.github.io/TrackFlow/" />
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:title" content="TrackFlow — Monthly Habit Tracker" />
+  <meta name="twitter:description" content="Track daily habits, build streaks, and visualize your consistency." />
+  <!-- PWA -->
+  <link rel="manifest" href="manifest.json" />
+  <meta name="theme-color" content="#00c8e6" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <link rel="apple-touch-icon" href="favicon.svg" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&family=Orbitron:wght@400;600;700&display=swap" rel="stylesheet" />
@@ -78,6 +92,27 @@
           <span class="stat-val" id="headerPct">0%</span>
           <span class="stat-lbl">Overall</span>
         </div>
+        <button class="btn-export" id="exportBtn" title="Export data as JSON">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
+          </svg>
+          Export
+        </button>
+        <button class="btn-import" id="importBtn" title="Import data from JSON">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>
+          </svg>
+          Import
+        </button>
+        <input type="file" id="importFileInput" accept=".json" style="display:none" />
+        <button class="btn-theme-toggle" id="themeToggle" title="Toggle light/dark theme">
+          <svg class="theme-icon-moon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/>
+          </svg>
+          <svg class="theme-icon-sun" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:none">
+            <circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+          </svg>
+        </button>
         <button class="btn-add-activity" id="openAddModal">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
           Add Activity
@@ -257,6 +292,27 @@
 
   <!-- Toast -->
   <div class="toast" id="toast"></div>
+
+  <!-- Keyboard Shortcuts Modal -->
+  <div class="overlay" id="shortcutsOverlay">
+    <div class="modal glass-modal" style="max-width:380px">
+      <div class="modal-head">
+        <span class="modal-title">⌨ Keyboard Shortcuts</span>
+        <button class="modal-close" id="closeShortcuts">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="shortcuts-grid">
+          <div class="sc-row"><kbd>N</kbd><span>Add new activity</span></div>
+          <div class="sc-row"><kbd>←</kbd><span>Previous month</span></div>
+          <div class="sc-row"><kbd>→</kbd><span>Next month</span></div>
+          <div class="sc-row"><kbd>E</kbd><span>Export data (JSON)</span></div>
+          <div class="sc-row"><kbd>T</kbd><span>Toggle theme</span></div>
+          <div class="sc-row"><kbd>Esc</kbd><span>Close any modal</span></div>
+          <div class="sc-row"><kbd>?</kbd><span>Show this help</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
 
   <script src="app.js"></script>
 </body>

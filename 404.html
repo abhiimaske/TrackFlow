@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>404 — Page Not Found | TrackFlow</title>
+  <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Orbitron:wght@600;700&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Inter', system-ui, sans-serif;
+      background: #0b0d12;
+      color: #e2e8f0;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+    .container {
+      text-align: center;
+      padding: 40px 24px;
+      max-width: 480px;
+    }
+    .code {
+      font-family: 'Orbitron', monospace;
+      font-size: clamp(5rem, 12vw, 8rem);
+      font-weight: 700;
+      background: linear-gradient(135deg, #00c8e6, #a855f7);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      line-height: 1;
+      margin-bottom: 16px;
+      animation: glitch 3s ease-in-out infinite;
+    }
+    @keyframes glitch {
+      0%, 90%, 100% { opacity: 1; transform: none; }
+      92% { opacity: 0.8; transform: translateX(-4px) skewX(-2deg); }
+      94% { opacity: 1; transform: translateX(4px) skewX(2deg); }
+      96% { opacity: 0.8; transform: translateX(-2px); }
+    }
+    .title {
+      font-size: 1.4rem;
+      font-weight: 700;
+      margin-bottom: 12px;
+      color: #e2e8f0;
+    }
+    .sub {
+      font-size: 0.92rem;
+      color: #7d8fb3;
+      line-height: 1.6;
+      margin-bottom: 32px;
+    }
+    .btn-home {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 28px;
+      background: linear-gradient(135deg, #00c8e6, #a855f7);
+      border: none;
+      border-radius: 28px;
+      color: #fff;
+      font-size: 0.95rem;
+      font-weight: 600;
+      text-decoration: none;
+      cursor: pointer;
+      transition: transform 0.2s, box-shadow 0.2s;
+      box-shadow: 0 4px 20px rgba(0, 200, 230, 0.35);
+    }
+    .btn-home:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 28px rgba(0, 200, 230, 0.5);
+    }
+    .orbit {
+      position: fixed;
+      border: 1px solid rgba(0, 200, 230, 0.08);
+      border-radius: 50%;
+      animation: spin 30s linear infinite;
+    }
+    .orbit-1 { width: 400px; height: 400px; top: -100px; left: -100px; }
+    .orbit-2 { width: 500px; height: 500px; bottom: -150px; right: -150px; animation-direction: reverse; animation-duration: 40s; border-color: rgba(168, 85, 247, 0.06); }
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
+</head>
+<body>
+  <div class="orbit orbit-1"></div>
+  <div class="orbit orbit-2"></div>
+  <div class="container">
+    <div class="code">404</div>
+    <h1 class="title">Page Not Found</h1>
+    <p class="sub">The page you're looking for doesn't exist or has been moved. Let's get you back on track.</p>
+    <a href="index.html" class="btn-home">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/>
+        <polyline points="9 22 9 12 15 12 15 22"/>
+      </svg>
+      Back to TrackFlow
+    </a>
+  </div>
+</body>
+</html>

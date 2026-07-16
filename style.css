@@ -1191,3 +1191,218 @@ body {
   opacity: 0; transition: opacity 0.3s;
 }
 .lp-saved.show { opacity: 1; }
+
+/* ══════════════════════════════════════════
+   EXPORT / IMPORT BUTTONS
+   ══════════════════════════════════════════ */
+.btn-export, .btn-import {
+  display: flex; align-items: center; gap: 5px;
+  padding: 7px 12px;
+  background: rgba(0,200,230,0.08); border: 1px solid rgba(0,200,230,0.25);
+  border-radius: 20px; color: var(--accent); font-size: 0.78rem; font-weight: 500; cursor: pointer;
+  transition: var(--ease);
+}
+.btn-export:hover, .btn-import:hover {
+  background: rgba(0,200,230,0.18); border-color: var(--accent);
+  transform: translateY(-1px);
+}
+.btn-import {
+  background: rgba(168,85,247,0.08); border-color: rgba(168,85,247,0.25); color: var(--accent2);
+}
+.btn-import:hover {
+  background: rgba(168,85,247,0.18); border-color: var(--accent2);
+}
+
+/* ══════════════════════════════════════════
+   THEME TOGGLE
+   ══════════════════════════════════════════ */
+.btn-theme-toggle {
+  width: 36px; height: 36px;
+  background: var(--glass); border: 1px solid var(--c-border2);
+  border-radius: 50%; color: var(--c-text);
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+  transition: var(--ease); flex-shrink: 0;
+  padding: 0;
+}
+.btn-theme-toggle:hover {
+  background: rgba(0,200,230,0.15); border-color: var(--accent);
+  color: var(--accent); transform: rotate(30deg);
+}
+
+/* ══════════════════════════════════════════
+   KEYBOARD SHORTCUTS MODAL
+   ══════════════════════════════════════════ */
+.shortcuts-grid {
+  display: flex; flex-direction: column; gap: 10px;
+}
+.sc-row {
+  display: flex; align-items: center; gap: 14px;
+}
+.sc-row kbd {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-width: 40px; height: 30px;
+  padding: 2px 10px;
+  background: var(--bg4); border: 1px solid var(--c-border2);
+  border-radius: 6px;
+  font-family: var(--font-hud); font-size: 0.72rem; font-weight: 600;
+  color: var(--accent);
+  box-shadow: 0 2px 0 var(--c-border);
+}
+.sc-row span {
+  font-size: 0.85rem; color: var(--c-text2);
+}
+
+/* ══════════════════════════════════════════
+   LIGHT THEME
+   ══════════════════════════════════════════ */
+html.light {
+  --bg:        #f0f2f5;
+  --bg2:       #ffffff;
+  --bg3:       #f7f8fa;
+  --bg4:       #e8eaef;
+  --glass:     rgba(0,0,0,0.03);
+  --glass2:    rgba(0,0,0,0.06);
+
+  --accent:    #0891b2;
+  --accent2:   #7c3aed;
+  --green:     #16a34a;
+  --amber:     #d97706;
+  --red:       #dc2626;
+
+  --c-text:    #1e293b;
+  --c-text2:   #64748b;
+  --c-text3:   #94a3b8;
+  --c-border:  rgba(0,0,0,0.08);
+  --c-border2: rgba(0,0,0,0.12);
+}
+
+/* Light theme specific overrides */
+html.light body {
+  background: var(--bg);
+  color: var(--c-text);
+}
+html.light .scanlines { display: none; }
+html.light .header {
+  background: rgba(255,255,255,0.92);
+  border-bottom-color: var(--c-border);
+}
+html.light .logo-icon {
+  background: linear-gradient(135deg, rgba(8,145,178,0.1), rgba(124,58,237,0.1));
+  border-color: rgba(8,145,178,0.25);
+  box-shadow: 0 0 14px rgba(8,145,178,0.15);
+}
+html.light .logo-text {
+  background-image: linear-gradient(90deg, #0891b2, #7c3aed, #0891b2);
+}
+html.light .hero-strip {
+  background: linear-gradient(90deg, rgba(8,145,178,0.06), rgba(124,58,237,0.06));
+}
+html.light .grid-scroll {
+  background: #fff;
+  border-color: var(--c-border);
+  box-shadow: 0 2px 16px rgba(0,0,0,0.08);
+}
+html.light .th-goals-main,
+html.light .th-count-main,
+html.light .th-dayname-stub,
+html.light .th-count-stub,
+html.light .th-datenum-stub,
+html.light .th-count-datenum,
+html.light .td-label,
+html.light .td-count {
+  background: #fff;
+}
+html.light .activity-row:hover .td-label { background: #f7f8fa; }
+html.light .chk {
+  border-color: rgba(0,0,0,0.15);
+  background: rgba(0,0,0,0.02);
+}
+html.light .chk:hover:not(.future) {
+  border-color: var(--accent);
+  background: rgba(8,145,178,0.08);
+}
+html.light .chk.done {
+  background: var(--green);
+  border-color: var(--green);
+  box-shadow: 0 0 6px rgba(22,163,74,0.3);
+}
+html.light .chk.skip {
+  background: rgba(217,119,6,0.12) !important;
+  border-color: rgba(217,119,6,0.5) !important;
+}
+html.light .chk.skip .chk-icon { stroke: #d97706 !important; }
+html.light .dashboard {
+  background: #fff;
+  border-color: var(--c-border);
+  box-shadow: 0 2px 16px rgba(0,0,0,0.06);
+}
+html.light .s-card { background: #f7f8fa; }
+html.light .graph-panel { background: #f7f8fa; }
+html.light .glass-modal {
+  background: #fff;
+  border-color: var(--c-border);
+  box-shadow: 0 16px 48px rgba(0,0,0,0.15);
+}
+html.light .overlay { background: rgba(0,0,0,0.3); }
+html.light .text-input, html.light .qa-name-input {
+  background: #f7f8fa; border-color: var(--c-border);
+  color: var(--c-text);
+}
+html.light .toast {
+  background: #fff; border-color: var(--c-border);
+  color: var(--c-text);
+  box-shadow: 0 4px 20px rgba(0,0,0,0.12);
+}
+html.light .quick-add-bar {
+  background: #fff; border-color: var(--c-border);
+}
+html.light .learnings-panel {
+  background: #fff; border-color: var(--c-border);
+}
+html.light .lp-textarea {
+  background: #f7f8fa; border-color: var(--c-border);
+  color: var(--c-text);
+}
+html.light .qa-emoji-input, html.light .modal-emoji-input {
+  background: #f7f8fa; border-color: var(--c-border); color: var(--c-text);
+}
+html.light .btn-reset {
+  background: rgba(220,38,38,0.06); border-color: rgba(220,38,38,0.2);
+  color: #dc2626;
+}
+html.light .wb-card { background: #f7f8fa; }
+html.light .wb-track { background: #e8eaef; }
+
+/* Smooth theme transition */
+html { transition: background-color 0.35s ease, color 0.35s ease; }
+body, .header, .grid-scroll, .dashboard, .glass-modal, .toast, .quick-add-bar,
+.learnings-panel, .td-label, .td-count, .s-card, .graph-panel, .wb-card,
+.chk, .text-input, .qa-name-input, .lp-textarea {
+  transition: background-color 0.35s ease, color 0.35s ease, border-color 0.35s ease, box-shadow 0.35s ease;
+}
+
+/* ══════════════════════════════════════════
+   PRINT STYLES
+   ══════════════════════════════════════════ */
+@media print {
+  .scanlines, .header, .hero-strip, .quick-add-bar, .learnings-panel,
+  .overlay, .toast, .btn-add-activity, .btn-reset, .btn-export, .btn-import,
+  .btn-theme-toggle, .td-remove-btn, .td-edit-btn, .qa-chip-remove { display: none !important; }
+
+  body { background: #fff !important; color: #000 !important; }
+  .grid-scroll { border: 1px solid #ccc !important; box-shadow: none !important; overflow: visible !important; }
+  .tracker-grid { font-size: 10px; }
+  .dashboard { border: 1px solid #ccc !important; box-shadow: none !important; }
+  .s-card { border: 1px solid #ddd !important; }
+  .chk.done { background: #22c55e !important; print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+  .th-week { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+}
+
+/* ══════════════════════════════════════════
+   RESPONSIVE — Additional for new buttons
+   ══════════════════════════════════════════ */
+@media (max-width:768px) {
+  .btn-export, .btn-import { padding: 6px 8px; font-size: 0; gap: 0; }
+  .btn-export svg, .btn-import svg { margin: 0; }
+  .btn-theme-toggle { width: 32px; height: 32px; }
+}

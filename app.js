@@ -16,6 +16,7 @@
   const MAX_ACT        = 30;
   const WEEK_CLASSES   = ['w1','w2','w3','w4','w5'];
   const FILL_CLASSES   = ['wf1','wf2','wf3','wf4','wf5'];
+  const WEEK_LABELS    = ['Week 1','Week 2','Week 3','Week 4','Week 5'];
 
   const EMOJIS = [
     '🏃','📚','🧘','💪','🍎','💧','🎵','✍️','🌅','😴',
@@ -730,15 +731,16 @@
     const ctx = canvas.getContext('2d');
     ctx.scale(dpr, dpr);
 
-    /* Colours */
-    const bgColor     = '#161b28';
-    const gridColor   = 'rgba(255,255,255,0.05)';
+    /* Colours — theme-aware */
+    const isLightTheme = document.documentElement.classList.contains('light');
+    const bgColor     = isLightTheme ? '#f7f8fa' : '#161b28';
+    const gridColor   = isLightTheme ? 'rgba(0,0,0,0.06)' : 'rgba(255,255,255,0.05)';
     const barColor    = 'rgba(0,200,230,0.35)';
     const barDone     = 'rgba(0,200,230,0.75)';
     const lineColor   = '#a855f7';
-    const todayColor  = '#f59e0b';
-    const textColor   = 'rgba(125,143,179,0.8)';
-    const futureBar   = 'rgba(255,255,255,0.05)';
+    const todayColor  = isLightTheme ? '#d97706' : '#f59e0b';
+    const textColor   = isLightTheme ? 'rgba(100,116,139,0.8)' : 'rgba(125,143,179,0.8)';
+    const futureBar   = isLightTheme ? 'rgba(0,0,0,0.04)' : 'rgba(255,255,255,0.05)';
 
     /* Padding */
     const padL = 36, padR = 16, padT = 16, padB = 28;
@@ -958,27 +960,7 @@
     weeklyBarRow.innerHTML = html;
   }
 
-  /* ══════════════════════════════════════════════
-     QUICK-ADD EMOJI DROPDOWN
-     ══════════════════════════════════════════════ */
-  function buildQAEmojiDropdown() {
-    qaEmojiDropdown.innerHTML = '';
-    EMOJIS.forEach(em => {
-      const btn = document.createElement('button');
-      btn.type = 'button';
-      btn.className = 'qa-emoji-opt' + (em === qaSelectedEmoji ? ' active' : '');
-      btn.textContent = em;
-      btn.addEventListener('click', e => {
-        e.stopPropagation();
-        qaSelectedEmoji = em;
-        qaEmojiBtn.textContent = em;
-        qaEmojiDropdown.querySelectorAll('.qa-emoji-opt').forEach(b => b.classList.toggle('active', b.textContent === em));
-        qaEmojiDropdown.classList.remove('open');
-      });
-      qaEmojiDropdown.appendChild(btn);
-    });
-    qaEmojiBtn.textContent = qaSelectedEmoji;
-  }
+
 
   /* ══════════════════════════════════════════════
      MODAL EMOJI PICKER
@@ -1211,6 +1193,218 @@
     input.addEventListener('dblclick', e => e.stopPropagation());
   }
 
+  /* ══════════════════════════════════════════════
+     EXPORT / IMPORT
+     ══════════════════════════════════════════════ */
+  function exportData() {
+    try {
+      const payload = {
+        _format: 'trackflow_backup_v1',
+        _exported: new Date().toISOString(),
+        activities: state.activities,
+      };
+
+      // Collect all months of check & notes data from localStorage
+      const months = {};
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key.startsWith('trackflow_v5_checks_') || key.startsWith('trackflow_v5_notes_')) {
+          try { months[key] = JSON.parse(localStorage.getItem(key)); } catch(e) {}
+        }
+      }
+      payload.months = months;
+
+      const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      const d = new Date();
+      a.download = `trackflow_backup_${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      showToast('📥 Data exported successfully!');
+    } catch(e) {
+      showToast('⚠️ Export failed: ' + e.message);
+    }
+  }
+
+  function importData(file) {
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      try {
+        const data = JSON.parse(e.target.result);
+        if (!data._format || !data._format.startsWith('trackflow_backup')) {
+          showToast('⚠️ Invalid backup file!');
+          return;
+        }
+
+        // Restore activities
+        if (data.activities && Array.isArray(data.activities) && data.activities.length) {
+          state.activities = data.activities;
+          saveActivities();
+        }
+
+        // Restore all month data
+        if (data.months && typeof data.months === 'object') {
+          Object.entries(data.months).forEach(([key, value]) => {
+            try { localStorage.setItem(key, JSON.stringify(value)); } catch(e) {}
+          });
+        }
+
+        // Reload current month
+        state.checks = loadChecks(state.year, state.month);
+        state.notes  = loadNotes(state.year, state.month);
+        renderMonthNav();
+        renderAll();
+        showToast('✅ Data imported successfully!');
+      } catch(err) {
+        showToast('⚠️ Import failed: invalid JSON');
+      }
+    };
+    reader.readAsText(file);
+  }
+
+  /* ══════════════════════════════════════════════
+     THEME TOGGLE (Dark / Light)
+     ══════════════════════════════════════════════ */
+  const STORE_THEME = 'trackflow_theme';
+
+  function initTheme() {
+    const saved = localStorage.getItem(STORE_THEME);
+    if (saved === 'light') {
+      document.documentElement.classList.add('light');
+      updateThemeIcons(true);
+    }
+  }
+
+  function toggleTheme() {
+    const isLight = document.documentElement.classList.toggle('light');
+    localStorage.setItem(STORE_THEME, isLight ? 'light' : 'dark');
+    updateThemeIcons(isLight);
+    // Re-render canvas graph since it uses hardcoded colors
+    setTimeout(renderProductivityGraph, 50);
+    showToast(isLight ? '☀️ Light mode' : '🌙 Dark mode');
+  }
+
+  function updateThemeIcons(isLight) {
+    const moonIcon = document.querySelector('.theme-icon-moon');
+    const sunIcon  = document.querySelector('.theme-icon-sun');
+    if (moonIcon) moonIcon.style.display = isLight ? 'none' : 'block';
+    if (sunIcon)  sunIcon.style.display  = isLight ? 'block' : 'none';
+  }
+
+  /* ══════════════════════════════════════════════
+     KEYBOARD SHORTCUTS
+     ══════════════════════════════════════════════ */
+  function isAnyModalOpen() {
+    return document.querySelector('.overlay.open') !== null;
+  }
+
+  function closeAllModals() {
+    document.querySelectorAll('.overlay.open').forEach(o => o.classList.remove('open'));
+  }
+
+  function bindKeyboardShortcuts() {
+    document.addEventListener('keydown', e => {
+      // Don't trigger shortcuts when typing in inputs/textareas
+      const tag = (e.target.tagName || '').toLowerCase();
+      if (tag === 'input' || tag === 'textarea' || tag === 'select' || e.target.isContentEditable) {
+        if (e.key === 'Escape') { e.target.blur(); closeAllModals(); }
+        return;
+      }
+
+      switch(e.key) {
+        case 'Escape':
+          closeAllModals();
+          break;
+        case 'n':
+        case 'N':
+          if (!isAnyModalOpen()) {
+            e.preventDefault();
+            openAddModal.click();
+          }
+          break;
+        case 'ArrowLeft':
+          if (!isAnyModalOpen()) {
+            e.preventDefault();
+            navigateMonth(-1);
+          }
+          break;
+        case 'ArrowRight':
+          if (!isAnyModalOpen()) {
+            e.preventDefault();
+            navigateMonth(1);
+          }
+          break;
+        case 'e':
+        case 'E':
+          if (!isAnyModalOpen()) {
+            e.preventDefault();
+            exportData();
+          }
+          break;
+        case 't':
+        case 'T':
+          if (!isAnyModalOpen()) {
+            e.preventDefault();
+            toggleTheme();
+          }
+          break;
+        case '?':
+          e.preventDefault();
+          const scOverlay = $('shortcutsOverlay');
+          if (scOverlay) {
+            if (scOverlay.classList.contains('open')) {
+              scOverlay.classList.remove('open');
+            } else {
+              closeAllModals();
+              scOverlay.classList.add('open');
+            }
+          }
+          break;
+      }
+    });
+  }
+
+  /* ══════════════════════════════════════════════
+     BIND NEW FEATURE EVENTS
+     ══════════════════════════════════════════════ */
+  function bindNewFeatures() {
+    /* Export */
+    const exportBtn = $('exportBtn');
+    if (exportBtn) exportBtn.addEventListener('click', exportData);
+
+    /* Import */
+    const importBtn = $('importBtn');
+    const importFileInput = $('importFileInput');
+    if (importBtn && importFileInput) {
+      importBtn.addEventListener('click', () => importFileInput.click());
+      importFileInput.addEventListener('change', e => {
+        if (e.target.files && e.target.files[0]) {
+          importData(e.target.files[0]);
+          e.target.value = ''; // reset so same file can be re-imported
+        }
+      });
+    }
+
+    /* Theme toggle */
+    const themeToggle = $('themeToggle');
+    if (themeToggle) themeToggle.addEventListener('click', toggleTheme);
+
+    /* Shortcuts modal */
+    const shortcutsOverlay = $('shortcutsOverlay');
+    const closeShortcuts = $('closeShortcuts');
+    if (closeShortcuts) closeShortcuts.addEventListener('click', () => shortcutsOverlay.classList.remove('open'));
+    if (shortcutsOverlay) shortcutsOverlay.addEventListener('click', e => {
+      if (e.target === shortcutsOverlay) shortcutsOverlay.classList.remove('open');
+    });
+
+    /* Keyboard shortcuts */
+    bindKeyboardShortcuts();
+  }
+
   /* ── Toast ── */
   let toastTimer;
   function showToast(msg) {
@@ -1221,5 +1415,9 @@
   }
 
   /* ── Boot ── */
-  document.addEventListener('DOMContentLoaded', init);
+  document.addEventListener('DOMContentLoaded', () => {
+    initTheme();
+    init();
+    bindNewFeatures();
+  });
 })();
