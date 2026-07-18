@@ -333,7 +333,7 @@
         today:     isToday(Y, M, d),
         future:    isFuture(Y, M, d),
         hasNote:   !!(state.notes[d] && state.notes[d].trim()),
-        weekStart: (d === 1 || dow === 1), // first day of month OR Monday
+        weekStart: (d === 1 || d === 8 || d === 15 || d === 22), // fixed 4-week layout
       });
     }
 
@@ -373,14 +373,8 @@
       tr0.appendChild(th);
     });
 
-    /* ROW 1 — Day names */
+    /* ROW 1 — Day names (no stubs needed — GOALS/DONE rowSpan covers these) */
     const tr1 = document.createElement('tr');
-    const thDaynameStub = document.createElement('th');
-    thDaynameStub.className = 'th-dayname-stub';
-    const thCountStub = document.createElement('th');
-    thCountStub.className = 'th-count-stub';
-    tr1.appendChild(thDaynameStub);
-    tr1.appendChild(thCountStub);
 
     dayCols.forEach(c => {
       const th = document.createElement('th');
@@ -391,15 +385,8 @@
       tr1.appendChild(th);
     });
 
-    /* ROW 2 — Date numbers */
+    /* ROW 2 — Date numbers (no stubs needed — GOALS/DONE rowSpan covers these) */
     const tr2 = document.createElement('tr');
-    const thDatenumStub = document.createElement('th');
-    thDatenumStub.className = 'th-datenum-stub';
-    thDatenumStub.textContent = 'DATE';
-    const thCountDatenum = document.createElement('th');
-    thCountDatenum.className = 'th-count-datenum';
-    tr2.appendChild(thDatenumStub);
-    tr2.appendChild(thCountDatenum);
 
     dayCols.forEach(c => {
       const th = document.createElement('th');
@@ -932,11 +919,11 @@
   function renderWeeklyBars() {
     if (!state.activities.length) { weeklyBarRow.innerHTML = ''; return; }
     const D = state.daysInMonth;
-    const totalWeeks = Math.ceil(D / 7);
+    const totalWeeks = 4;
     let html = '';
     for (let w = 0; w < totalWeeks; w++) {
       const start = w * 7 + 1;
-      const end   = Math.min((w+1)*7, D);
+      const end   = (w === totalWeeks - 1) ? D : Math.min((w+1)*7, D);
       let possible = 0, done = 0;
       for (let d = start; d <= end; d++) {
         state.activities.forEach(act => {
