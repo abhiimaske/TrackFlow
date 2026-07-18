@@ -1192,6 +1192,150 @@ body {
 .lp-saved.show { opacity: 1; }
 
 /* ══════════════════════════════════════════
+   ATTACHMENT DROP ZONE + CARDS
+   ══════════════════════════════════════════ */
+.lp-drop-zone {
+  position: relative;
+  margin-top: 8px;
+  min-height: 0;
+  border-radius: var(--r-md);
+  transition: all 0.25s ease;
+}
+.lp-drop-zone.drag-over {
+  background: rgba(168,85,247,0.06);
+  border: 2px dashed rgba(168,85,247,0.5);
+  border-radius: var(--r-md);
+  min-height: 80px;
+}
+.lp-drop-overlay {
+  display: none;
+  position: absolute; inset: 0;
+  flex-direction: column; align-items: center; justify-content: center; gap: 6px;
+  color: #a855f7;
+  font-size: 0.82rem; font-weight: 600;
+  letter-spacing: 0.05em;
+  pointer-events: none;
+  z-index: 5;
+  animation: dropPulse 1.5s ease-in-out infinite;
+}
+.lp-drop-zone.drag-over .lp-drop-overlay { display: flex; }
+@keyframes dropPulse {
+  0%, 100% { opacity: 0.7; }
+  50%      { opacity: 1; }
+}
+
+/* Attachments list */
+.lp-attachments-list {
+  display: flex; flex-wrap: wrap; gap: 8px;
+  padding: 0;
+}
+.lp-attachments-list:empty { display: none; }
+
+/* Individual attachment card */
+.lp-attach-card {
+  display: flex; align-items: center; gap: 8px;
+  padding: 6px 10px 6px 8px;
+  background: var(--bg3);
+  border: 1px solid var(--c-border2);
+  border-radius: var(--r-sm);
+  font-size: 0.75rem;
+  color: var(--c-text);
+  cursor: pointer;
+  transition: var(--ease);
+  max-width: 220px;
+  position: relative;
+  animation: chipIn 0.22s cubic-bezier(0.34,1.56,0.64,1);
+}
+.lp-attach-card:hover {
+  border-color: #a855f7;
+  transform: translateY(-1px);
+  box-shadow: 0 3px 12px rgba(168,85,247,0.15);
+}
+
+/* Image thumbnail */
+.lp-attach-thumb {
+  width: 32px; height: 32px;
+  border-radius: 4px;
+  object-fit: cover;
+  flex-shrink: 0;
+  border: 1px solid var(--c-border);
+}
+
+/* Document icon placeholder */
+.lp-attach-icon {
+  width: 32px; height: 32px;
+  border-radius: 4px;
+  background: rgba(168,85,247,0.1);
+  border: 1px solid rgba(168,85,247,0.25);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.85rem;
+  flex-shrink: 0;
+  color: #a855f7;
+}
+
+/* File info */
+.lp-attach-info-wrap {
+  display: flex; flex-direction: column; gap: 1px;
+  min-width: 0; flex: 1;
+}
+.lp-attach-name {
+  font-weight: 500;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  font-size: 0.72rem;
+}
+.lp-attach-size {
+  font-size: 0.62rem;
+  color: var(--c-text2);
+  font-family: var(--font-hud);
+  letter-spacing: 0.04em;
+}
+
+/* Remove button */
+.lp-attach-remove {
+  position: absolute; top: -4px; right: -4px;
+  width: 16px; height: 16px;
+  border-radius: 50%;
+  background: rgba(239,68,68,0.9);
+  border: none;
+  color: #fff; font-size: 9px;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  opacity: 0;
+  transition: var(--ease);
+  box-shadow: 0 1px 4px rgba(0,0,0,0.3);
+}
+.lp-attach-card:hover .lp-attach-remove { opacity: 1; }
+.lp-attach-remove:hover { transform: scale(1.15); background: #ef4444; }
+
+/* Attach actions row */
+.lp-attach-actions {
+  display: flex; align-items: center; gap: 10px;
+  margin-top: 8px;
+}
+.lp-attach-btn {
+  display: flex; align-items: center; gap: 6px;
+  padding: 6px 14px;
+  background: rgba(168,85,247,0.08);
+  border: 1px solid rgba(168,85,247,0.25);
+  border-radius: 16px;
+  color: #a855f7;
+  font-size: 0.75rem; font-weight: 600;
+  cursor: pointer;
+  transition: var(--ease);
+}
+.lp-attach-btn:hover {
+  background: rgba(168,85,247,0.18);
+  border-color: #a855f7;
+  transform: translateY(-1px);
+}
+.lp-attach-info {
+  font-size: 0.65rem;
+  color: var(--c-text3);
+  font-family: var(--font-hud);
+  letter-spacing: 0.04em;
+}
+
+/* ══════════════════════════════════════════
    EXPORT / IMPORT BUTTONS
    ══════════════════════════════════════════ */
 .btn-export, .btn-import {
@@ -1371,6 +1515,10 @@ html.light .btn-reset {
 }
 html.light .wb-card { background: #f7f8fa; }
 html.light .wb-track { background: #e8eaef; }
+html.light .lp-attach-card { background: #f7f8fa; border-color: var(--c-border); }
+html.light .lp-attach-icon { background: rgba(124,58,237,0.08); border-color: rgba(124,58,237,0.2); }
+html.light .lp-drop-zone.drag-over { background: rgba(124,58,237,0.04); border-color: rgba(124,58,237,0.4); }
+html.light .lp-attach-btn { background: rgba(124,58,237,0.06); border-color: rgba(124,58,237,0.2); color: #7c3aed; }
 
 /* Smooth theme transition */
 html { transition: background-color 0.35s ease, color 0.35s ease; }
