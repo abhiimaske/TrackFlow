@@ -14,6 +14,8 @@
   const STORE_NOTES_K  = (y, m) => `trackflow_v5_notes_${y}_${String(m+1).padStart(2,'0')}`;
   const STORE_LEGACY   = 'trackflow_ref_v4';
   const MAX_ACT        = 30;
+  const MAX_ATTACH_SIZE = 512000; // 500KB per file
+  const MAX_ATTACHMENTS = 10;    // per day
   const WEEK_CLASSES   = ['w1','w2','w3','w4','w5'];
   const FILL_CLASSES   = ['wf1','wf2','wf3','wf4','wf5'];
   const WEEK_LABELS    = ['Week 1','Week 2','Week 3','Week 4','Week 5'];
@@ -64,7 +66,7 @@
   let state = {
     activities: [],
     checks: {},       // values: 'done' | 'skip' | (absent = empty)
-    notes:  {},       // key = day number, value = string
+    notes:  {},       // key = day number, value = string | { text, attachments[] }
     year: 0, month: 0, daysInMonth: 0,
     todayYear: 0, todayMonth: 0, todayDate: 0,
     selectedDay: 0,   // day currently selected in journal panel
@@ -168,13 +170,63 @@
     } catch(e) { return {}; }
   }
   function saveNotes() {
-    try { localStorage.setItem(STORE_NOTES_K(state.year, state.month), JSON.stringify(state.notes)); } catch(e) {}
+    try { localStorage.setItem(STORE_NOTES_K(state.year, state.month), JSON.stringify(state.notes)); } catch(e) {
+      showToast('⚠️ Storage full — try removing some attachments');
+    }
   }
   function loadNotes(y, m) {
     try {
       const raw = localStorage.getItem(STORE_NOTES_K(y, m));
       return raw ? (JSON.parse(raw) || {}) : {};
     } catch(e) { return {}; }
+  }
+
+  /* ── Note accessors (handles both old string and new {text,attachments} format) ── */
+  function getNoteText(day) {
+    const n = state.notes[day];
+    if (!n) return '';
+    if (typeof n === 'string') return n;
+    return n.text || '';
+  }
+  function getNoteAttachments(day) {
+    const n = state.notes[day];
+    if (!n || typeof n === 'string') return [];
+    return n.attachments || [];
+  }
+  function setNoteText(day, txt) {
+    const n = state.notes[day];
+    if (!n) {
+      if (txt.trim()) state.notes[day] = txt; // store as simple string if no attachments
+    } else if (typeof n === 'string') {
+      if (txt.trim()) state.notes[day] = txt;
+      else delete state.notes[day];
+    } else {
+      n.text = txt;
+      if (!txt.trim() && (!n.attachments || !n.attachments.length)) delete state.notes[day];
+    }
+  }
+  function addNoteAttachment(day, attachment) {
+    let n = state.notes[day];
+    if (!n) {
+      state.notes[day] = { text: '', attachments: [attachment] };
+    } else if (typeof n === 'string') {
+      state.notes[day] = { text: n, attachments: [attachment] };
+    } else {
+      if (!n.attachments) n.attachments = [];
+      n.attachments.push(attachment);
+    }
+  }
+  function removeNoteAttachment(day, index) {
+    const n = state.notes[day];
+    if (!n || typeof n === 'string') return;
+    if (n.attachments) n.attachments.splice(index, 1);
+    if (!n.text && (!n.attachments || !n.attachments.length)) delete state.notes[day];
+  }
+  function hasNoteContent(day) {
+    const n = state.notes[day];
+    if (!n) return false;
+    if (typeof n === 'string') return !!n.trim();
+    return !!(n.text && n.text.trim()) || !!(n.attachments && n.attachments.length);
   }
   function loadLegacy() {
     /* Migrate from old single-key storage */
@@ -535,7 +587,7 @@
   }
 
   /* ══════════════════════════════════════════════
-     NOTES PANEL — "What I Learned"
+     NOTES PANEL — "What I Learned" + Attachments
      ══════════════════════════════════════════════ */
   const lpEl       = () => $('learningsPanel');
   const lpDateLbl  = () => $('lpDateLabel');
@@ -543,6 +595,7 @@
   const lpSaved    = () => $('lpSaved');
   const lpCount    = () => $('lpNoteCount');
   let   noteDebounce = null;
+  let   dragCounter  = 0; // track nested dragenter/dragleave
 
   function selectJournalDay(day) {
     state.selectedDay = day;
@@ -563,28 +616,34 @@
 
     if (lpDateLbl()) lpDateLbl().textContent = dayName2.toUpperCase();
 
+    /* ── Textarea ── */
     const ta = lpTextarea();
     if (ta) {
-      ta.value = state.notes[d] || '';
+      ta.value = getNoteText(d);
       ta.placeholder = `What did you learn or reflect on — ${dayName2}?`;
-      // Clear old listeners by replacing with fresh element
       ta.oninput = () => {
         clearTimeout(noteDebounce);
         noteDebounce = setTimeout(() => {
-          const txt = ta.value;
-          if (txt.trim()) state.notes[d] = txt;
-          else delete state.notes[d];
+          setNoteText(d, ta.value);
           saveNotes();
-          // Update dot on date header
-          updateNoteDot(d, !!txt.trim());
-          // Show saved indicator
-          const s = lpSaved(); if (s) { s.textContent = '✓ Saved'; s.classList.add('show'); clearTimeout(s._t); s._t = setTimeout(() => s.classList.remove('show'), 1400); }
-          if (lpCount()) lpCount().textContent = countNotes() + ' note' + (countNotes()===1?'':'s') + ' this month';
+          updateNoteDot(d, hasNoteContent(d));
+          showSavedIndicator();
+          updateNoteCount();
         }, 500);
       };
     }
 
-    // Prev/Next day buttons
+    /* ── Attachments list ── */
+    renderAttachmentsList(d);
+
+    /* ── Attachment info ── */
+    const info = $('lpAttachInfo');
+    const atts = getNoteAttachments(d);
+    if (info) {
+      info.textContent = atts.length ? `${atts.length} file${atts.length>1?'s':''} attached` : '';
+    }
+
+    /* ── Prev/Next day buttons ── */
     const prevBtn = $('lpPrevDay');
     const nextBtn = $('lpNextDay');
     if (prevBtn) {
@@ -596,24 +655,224 @@
       nextBtn.onclick = () => selectJournalDay(d + 1);
     }
 
-    if (lpCount()) lpCount().textContent = countNotes() + ' note' + (countNotes()===1?'':'s') + ' this month';
+    updateNoteCount();
+  }
+
+  function showSavedIndicator() {
+    const s = lpSaved();
+    if (s) {
+      s.textContent = '✓ Saved';
+      s.classList.add('show');
+      clearTimeout(s._t);
+      s._t = setTimeout(() => s.classList.remove('show'), 1400);
+    }
+  }
+
+  function updateNoteCount() {
+    const c = countNotes();
+    if (lpCount()) lpCount().textContent = c + ' note' + (c===1?'':'s') + ' this month';
   }
 
   function countNotes() {
-    return Object.values(state.notes).filter(v => v && v.trim()).length;
+    return Object.values(state.notes).filter(v => hasNoteContent_raw(v)).length;
+  }
+  function hasNoteContent_raw(v) {
+    if (!v) return false;
+    if (typeof v === 'string') return !!v.trim();
+    return !!(v.text && v.text.trim()) || !!(v.attachments && v.attachments.length);
   }
 
-  function updateNoteDot(day, hasNote) {
+  function updateNoteDot(day, has) {
     const th = trackerGrid.querySelector(`.th-datenum[data-day="${day}"]`);
     if (!th) return;
     let dot = th.querySelector('.note-dot');
-    if (hasNote && !dot) {
+    if (has && !dot) {
       dot = document.createElement('span');
       dot.className = 'note-dot';
       th.appendChild(dot);
-    } else if (!hasNote && dot) {
+    } else if (!has && dot) {
       dot.remove();
     }
+  }
+
+  /* ── Render attachment cards ── */
+  function renderAttachmentsList(day) {
+    const list = $('lpAttachmentsList');
+    if (!list) return;
+    list.innerHTML = '';
+    const atts = getNoteAttachments(day);
+    atts.forEach((att, idx) => {
+      const card = document.createElement('div');
+      card.className = 'lp-attach-card';
+      card.title = `${att.name} (${formatFileSize(att.size)}) — Click to open`;
+
+      // Thumbnail or icon
+      if (att.type && att.type.startsWith('image/')) {
+        const img = document.createElement('img');
+        img.className = 'lp-attach-thumb';
+        img.src = att.data;
+        img.alt = att.name;
+        card.appendChild(img);
+      } else {
+        const icon = document.createElement('div');
+        icon.className = 'lp-attach-icon';
+        icon.textContent = getFileEmoji(att.type, att.name);
+        card.appendChild(icon);
+      }
+
+      // Info
+      const info = document.createElement('div');
+      info.className = 'lp-attach-info-wrap';
+      info.innerHTML = `<span class="lp-attach-name">${escHtml(att.name)}</span><span class="lp-attach-size">${formatFileSize(att.size)}</span>`;
+      card.appendChild(info);
+
+      // Remove button
+      const rmBtn = document.createElement('button');
+      rmBtn.className = 'lp-attach-remove';
+      rmBtn.textContent = '✕';
+      rmBtn.title = 'Remove attachment';
+      rmBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        removeNoteAttachment(day, idx);
+        saveNotes();
+        updateNoteDot(day, hasNoteContent(day));
+        renderAttachmentsList(day);
+        const infoEl = $('lpAttachInfo');
+        const a2 = getNoteAttachments(day);
+        if (infoEl) infoEl.textContent = a2.length ? `${a2.length} file${a2.length>1?'s':''} attached` : '';
+        showSavedIndicator();
+        showToast(`🗑️ "${att.name}" removed`);
+      });
+      card.appendChild(rmBtn);
+
+      // Click to preview
+      card.addEventListener('click', () => previewAttachment(att));
+
+      list.appendChild(card);
+    });
+  }
+
+  function getFileEmoji(type, name) {
+    if (!type) return '📄';
+    if (type.startsWith('image/')) return '🖼️';
+    if (type === 'application/pdf') return '📕';
+    if (type.includes('word') || (name && name.match(/\.docx?$/i))) return '📝';
+    if (type.includes('sheet') || type.includes('excel') || (name && name.match(/\.xlsx?$/i))) return '📊';
+    if (type.includes('presentation') || (name && name.match(/\.pptx?$/i))) return '📽️';
+    if (type.startsWith('text/') || (name && name.match(/\.(txt|md|csv)$/i))) return '📃';
+    return '📎';
+  }
+
+  function formatFileSize(bytes) {
+    if (!bytes) return '';
+    if (bytes < 1024) return bytes + ' B';
+    if (bytes < 1048576) return (bytes / 1024).toFixed(1) + ' KB';
+    return (bytes / 1048576).toFixed(1) + ' MB';
+  }
+
+  function previewAttachment(att) {
+    if (att.type && att.type.startsWith('image/')) {
+      const win = window.open('', '_blank');
+      if (win) {
+        win.document.write(`<html><head><title>${escHtml(att.name)}</title><style>body{margin:0;background:#111;display:flex;align-items:center;justify-content:center;min-height:100vh}img{max-width:95vw;max-height:95vh;border-radius:8px;box-shadow:0 4px 30px rgba(0,0,0,0.5)}</style></head><body><img src="${att.data}" alt="${escHtml(att.name)}"/></body></html>`);
+        win.document.close();
+      }
+    } else if (att.data) {
+      // Open data URI in new tab for PDFs, or trigger download for others
+      const link = document.createElement('a');
+      link.href = att.data;
+      link.download = att.name;
+      link.target = '_blank';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+  }
+
+  /* ── File processing (read files as base64 data URIs) ── */
+  function processFiles(files, day) {
+    const currentAtts = getNoteAttachments(day);
+    let added = 0;
+    Array.from(files).forEach(file => {
+      if (currentAtts.length + added >= MAX_ATTACHMENTS) {
+        showToast(`⚠️ Max ${MAX_ATTACHMENTS} attachments per day`);
+        return;
+      }
+      if (file.size > MAX_ATTACH_SIZE) {
+        showToast(`⚠️ "${file.name}" is too large (max 500KB)`);
+        return;
+      }
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        addNoteAttachment(day, {
+          name: file.name,
+          type: file.type,
+          size: file.size,
+          data: e.target.result
+        });
+        added++;
+        saveNotes();
+        updateNoteDot(day, true);
+        renderAttachmentsList(day);
+        const infoEl = $('lpAttachInfo');
+        const a2 = getNoteAttachments(day);
+        if (infoEl) infoEl.textContent = a2.length ? `${a2.length} file${a2.length>1?'s':''} attached` : '';
+        showSavedIndicator();
+        showToast(`📎 "${file.name}" attached`);
+      };
+      reader.onerror = () => showToast(`⚠️ Failed to read "${file.name}"`);
+      reader.readAsDataURL(file);
+    });
+  }
+
+  /* ── Drag & Drop handlers ── */
+  function bindDragDrop() {
+    const panel = lpEl();
+    const dropZone = $('lpDropZone');
+    if (!panel || !dropZone) return;
+
+    // Use the entire learnings panel as the drag target
+    panel.addEventListener('dragenter', (e) => {
+      e.preventDefault();
+      dragCounter++;
+      dropZone.classList.add('drag-over');
+    });
+    panel.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'copy';
+    });
+    panel.addEventListener('dragleave', (e) => {
+      e.preventDefault();
+      dragCounter--;
+      if (dragCounter <= 0) {
+        dragCounter = 0;
+        dropZone.classList.remove('drag-over');
+      }
+    });
+    panel.addEventListener('drop', (e) => {
+      e.preventDefault();
+      dragCounter = 0;
+      dropZone.classList.remove('drag-over');
+      if (e.dataTransfer.files && e.dataTransfer.files.length) {
+        processFiles(e.dataTransfer.files, state.selectedDay);
+      }
+    });
+  }
+
+  /* ── Bind attachment button + file input ── */
+  function bindAttachmentEvents() {
+    const attachBtn = $('lpAttachBtn');
+    const fileInput = $('lpFileInput');
+    if (attachBtn && fileInput) {
+      attachBtn.addEventListener('click', () => fileInput.click());
+      fileInput.addEventListener('change', (e) => {
+        if (e.target.files && e.target.files.length) {
+          processFiles(e.target.files, state.selectedDay);
+          e.target.value = ''; // reset so same file can be re-attached
+        }
+      });
+    }
+    bindDragDrop();
   }
 
   /* ══════════════════════════════════════════════
