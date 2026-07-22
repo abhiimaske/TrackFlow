@@ -105,6 +105,12 @@
           Import
         </button>
         <input type="file" id="importFileInput" accept=".json" style="display:none" />
+        <button class="btn-achievements" id="achievementsBtn" title="View streaks & achievements (A)">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="8" r="6"/><path d="M15.477 12.89L17 22l-5-3-5 3 1.523-9.11"/>
+          </svg>
+          Achievements
+        </button>
         <button class="btn-theme-toggle" id="themeToggle" title="Toggle light/dark theme">
           <svg class="theme-icon-moon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/>
@@ -332,9 +338,28 @@
           <div class="sc-row"><kbd>→</kbd><span>Next month</span></div>
           <div class="sc-row"><kbd>E</kbd><span>Export data (JSON)</span></div>
           <div class="sc-row"><kbd>T</kbd><span>Toggle theme</span></div>
+          <div class="sc-row"><kbd>A</kbd><span>Achievements</span></div>
           <div class="sc-row"><kbd>Esc</kbd><span>Close any modal</span></div>
           <div class="sc-row"><kbd>?</kbd><span>Show this help</span></div>
         </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Achievements Modal -->
+  <div class="overlay" id="achievementsOverlay">
+    <div class="modal glass-modal ach-modal">
+      <div class="modal-head">
+        <span class="modal-title">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-2px;margin-right:6px">
+            <circle cx="12" cy="8" r="6"/><path d="M15.477 12.89L17 22l-5-3-5 3 1.523-9.11"/>
+          </svg>
+          Streaks &amp; Achievements
+        </span>
+        <button class="modal-close" id="closeAchievements">✕</button>
+      </div>
+      <div class="modal-body" id="achievementsContent">
+        <!-- Rendered by JS -->
       </div>
     </div>
   </div>

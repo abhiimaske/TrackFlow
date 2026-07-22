@@ -1396,6 +1396,171 @@ body {
 }
 
 /* ══════════════════════════════════════════
+   ACHIEVEMENTS BUTTON & MODAL
+   ══════════════════════════════════════════ */
+.btn-achievements {
+  display: flex; align-items: center; gap: 5px;
+  padding: 7px 12px;
+  background: rgba(245,158,11,0.1); border: 1px solid rgba(245,158,11,0.3);
+  border-radius: 20px; color: #fbbf24; font-size: 0.78rem; font-weight: 500; cursor: pointer;
+  transition: var(--ease);
+}
+.btn-achievements:hover {
+  background: rgba(245,158,11,0.2); border-color: rgba(245,158,11,0.6);
+  transform: translateY(-1px); box-shadow: 0 4px 16px rgba(245,158,11,0.25);
+}
+
+/* Achievement Modal — wider than default */
+.ach-modal {
+  max-width: 680px !important;
+  width: 90vw;
+}
+.ach-modal .modal-body {
+  max-height: 70vh;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--bg4) transparent;
+  padding-bottom: 24px;
+}
+
+/* Summary cards row */
+.ach-summary {
+  display: flex; gap: 12px; margin-bottom: 20px;
+}
+.ach-summary-card {
+  flex: 1;
+  background: var(--glass2);
+  border: 1px solid var(--c-border2);
+  border-radius: var(--r-md);
+  padding: 14px 12px;
+  display: flex; flex-direction: column; align-items: center; gap: 4px;
+  text-align: center;
+}
+.ach-summary-val {
+  font-family: var(--font-hud);
+  font-size: 1.5rem; font-weight: 700; color: var(--accent);
+}
+.ach-summary-val small {
+  font-size: 0.75rem; color: var(--c-text2); font-weight: 400;
+}
+.ach-summary-lbl {
+  font-size: 0.7rem; color: var(--c-text2); line-height: 1.3;
+}
+
+/* Badge legend */
+.ach-legend {
+  background: var(--glass);
+  border: 1px solid var(--c-border);
+  border-radius: var(--r-md);
+  padding: 14px 16px;
+  margin-bottom: 20px;
+}
+.ach-legend-title {
+  font-size: 0.72rem; font-weight: 600; text-transform: uppercase;
+  letter-spacing: 0.08em; color: var(--c-text2); margin-bottom: 10px;
+}
+.ach-legend-grid {
+  display: flex; flex-wrap: wrap; gap: 8px;
+}
+.ach-legend-item {
+  display: flex; align-items: center; gap: 6px;
+  background: var(--glass2);
+  border: 1px solid var(--c-border);
+  border-radius: 20px;
+  padding: 5px 12px 5px 8px;
+  font-size: 0.78rem;
+}
+.ach-legend-icon { font-size: 1.1rem; }
+.ach-legend-name { color: var(--c-text); font-weight: 500; }
+.ach-legend-days {
+  font-family: var(--font-hud); font-size: 0.65rem;
+  color: var(--c-text2); letter-spacing: 0.04em;
+}
+
+/* Activities title */
+.ach-activities-title {
+  font-size: 0.72rem; font-weight: 600; text-transform: uppercase;
+  letter-spacing: 0.08em; color: var(--c-text2); margin-bottom: 12px;
+}
+
+/* Empty state */
+.ach-empty {
+  text-align: center; padding: 30px 20px;
+  color: var(--c-text2); font-size: 0.88rem;
+}
+
+/* Activity list */
+.ach-list {
+  display: flex; flex-direction: column; gap: 8px;
+}
+.ach-row {
+  display: flex; align-items: center; gap: 12px;
+  background: var(--glass);
+  border: 1px solid var(--c-border);
+  border-radius: var(--r-md);
+  padding: 10px 14px;
+  transition: var(--ease);
+}
+.ach-row:hover {
+  background: var(--glass2);
+  border-color: var(--c-border2);
+}
+.ach-row-left {
+  display: flex; align-items: center; gap: 10px;
+  min-width: 140px; flex-shrink: 0;
+}
+.ach-row-emoji { font-size: 1.3rem; }
+.ach-row-info {
+  display: flex; flex-direction: column; gap: 2px;
+}
+.ach-row-name {
+  font-size: 0.82rem; font-weight: 500; color: var(--c-text);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  max-width: 120px;
+}
+.ach-row-streak {
+  font-size: 0.68rem; color: var(--c-text2);
+  font-family: var(--font-hud); letter-spacing: 0.02em;
+}
+
+/* Streak bar in modal */
+.ach-row-center { flex: 1; min-width: 80px; }
+.ach-bar-wrap {
+  height: 6px;
+  background: var(--glass2);
+  border-radius: 3px;
+  overflow: hidden;
+}
+.ach-bar-fill {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 0.5s ease;
+}
+
+/* Badge pills */
+.ach-row-badges {
+  display: flex; gap: 4px; flex-shrink: 0;
+}
+.ach-badge {
+  display: flex; align-items: center; justify-content: center;
+  width: 28px; height: 28px;
+  border-radius: 50%;
+  border: 1.5px solid transparent;
+  font-size: 0.9rem;
+  transition: var(--ease);
+  cursor: default;
+}
+.ach-badge-locked {
+  opacity: 0.2;
+  filter: grayscale(1);
+  border-color: var(--c-border) !important;
+  box-shadow: none !important;
+}
+.ach-badge:not(.ach-badge-locked):hover {
+  transform: scale(1.25);
+}
+
+/* ══════════════════════════════════════════
    LIGHT THEME
    ══════════════════════════════════════════ */
 html.light {
@@ -1519,6 +1684,17 @@ html.light .lp-attach-card { background: #f7f8fa; border-color: var(--c-border);
 html.light .lp-attach-icon { background: rgba(124,58,237,0.08); border-color: rgba(124,58,237,0.2); }
 html.light .lp-drop-zone.drag-over { background: rgba(124,58,237,0.04); border-color: rgba(124,58,237,0.4); }
 html.light .lp-attach-btn { background: rgba(124,58,237,0.06); border-color: rgba(124,58,237,0.2); color: #7c3aed; }
+html.light .btn-achievements {
+  background: rgba(217,119,6,0.08); border-color: rgba(217,119,6,0.25); color: #d97706;
+}
+html.light .btn-achievements:hover {
+  background: rgba(217,119,6,0.15); border-color: rgba(217,119,6,0.5);
+}
+html.light .ach-summary-card { background: #f7f8fa; border-color: var(--c-border); }
+html.light .ach-legend { background: #f7f8fa; border-color: var(--c-border); }
+html.light .ach-row { background: #f7f8fa; border-color: var(--c-border); }
+html.light .ach-row:hover { background: #eef0f4; }
+html.light .ach-legend-item { background: #fff; border-color: var(--c-border); }
 
 /* Smooth theme transition */
 html { transition: background-color 0.35s ease, color 0.35s ease; }
@@ -1534,7 +1710,7 @@ body, .header, .grid-scroll, .dashboard, .glass-modal, .toast, .quick-add-bar,
 @media print {
   .scanlines, .header, .hero-strip, .quick-add-bar, .learnings-panel,
   .overlay, .toast, .btn-add-activity, .btn-reset, .btn-export, .btn-import,
-  .btn-theme-toggle, .td-remove-btn, .td-edit-btn, .qa-chip-remove { display: none !important; }
+  .btn-theme-toggle, .btn-achievements, .td-remove-btn, .td-edit-btn, .qa-chip-remove { display: none !important; }
 
   body { background: #fff !important; color: #000 !important; }
   .grid-scroll { border: 1px solid #ccc !important; box-shadow: none !important; overflow: visible !important; }
@@ -1549,9 +1725,13 @@ body, .header, .grid-scroll, .dashboard, .glass-modal, .toast, .quick-add-bar,
    RESPONSIVE — Additional for new buttons
    ══════════════════════════════════════════ */
 @media (max-width:768px) {
-  .btn-export, .btn-import { padding: 6px 8px; font-size: 0; gap: 0; }
-  .btn-export svg, .btn-import svg { margin: 0; }
+  .btn-export, .btn-import, .btn-achievements { padding: 6px 8px; font-size: 0; gap: 0; }
+  .btn-export svg, .btn-import svg, .btn-achievements svg { margin: 0; }
   .btn-theme-toggle { width: 32px; height: 32px; }
+  .ach-summary { flex-direction: column; }
+  .ach-row { flex-wrap: wrap; }
+  .ach-row-left { min-width: 100%; }
+  .ach-row-center { min-width: 100%; order: 3; }
+  .ach-row-badges { order: 2; margin-left: auto; }
 }
-
 

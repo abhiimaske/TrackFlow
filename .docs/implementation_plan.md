@@ -33,27 +33,23 @@ TrackFlow is a polished monthly habit tracker with a dark, techy UI. Here's what
 
 ### Phase 4: Feature Enhancements (P3)
 
-#### 4.1 Drag & Drop Activity Reordering
-- Add drag handles (`⠿` icon) to each activity row.
-- Implement native HTML5 drag-and-drop to reorder activities.
-- Save new order to localStorage.
+#### 4.1 Streak & Achievement System ✅
+- Track per-activity streaks across months (cross-month streak engine).
+- Award badges: ⭐ 3-day, 🔥 7-day, ⚡ 14-day, 💎 30-day, 👑 60-day, 🏆 100-day streak.
+- Show achievements in a dedicated modal with per-activity badge display.
+- Celebration toasts on badge threshold crossings.
 
 #### 4.2 Activity Categories / Color Tagging
 - Let users assign a color tag when adding/editing an activity (Health, Study, Fitness, etc.).
 - Show colored left-border on each row matching its category.
 - Add a filter/toggle in the Quick Add bar to show/hide categories.
 
-#### 4.3 Streak & Achievement System
-- Track per-activity streaks across months (not just current month).
-- Award badges: 🔥 7-day, ⚡ 14-day, 💎 30-day streak.
-- Show achievements in a dedicated panel or modal.
-
-#### 4.4 Performance & Code Quality
+#### 4.3 Performance & Code Quality
 - On checkbox toggle, refactor `renderDashboard()` to update only affected stat values.
 - Use `requestAnimationFrame` for canvas redraws.
 - Wrap localStorage with quota-exceeded handling.
 
-#### 4.5 Accessibility (a11y)
+#### 4.4 Accessibility (a11y)
 - Add ARIA roles to the grid (`role="grid"`, `role="row"`, `role="gridcell"`).
 - Ensure all interactive elements are keyboard-focusable with visible focus rings.
 - Add `aria-live` region for toast notifications.
@@ -140,9 +136,8 @@ ErrorDocument 404 /404.html
 
 | Priority | Phase | Estimated Effort |
 |---|---|---|
-| 🟢 **P3** | Drag & drop reorder | ~45 min |
+| ✅ **Done** | Streak & achievement system | Completed |
 | 🟢 **P3** | Categories / color tagging | ~40 min |
-| 🟢 **P3** | Streak achievements | ~30 min |
 | 🟢 **P3** | Perf + a11y | ~40 min |
 | 🔵 **P4** | PWA / offline | ~30 min |
 | 🔵 **P4** | Multi-month heatmap | ~1 hr |

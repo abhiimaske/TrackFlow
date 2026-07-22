@@ -44,6 +44,16 @@
     { bar:'linear-gradient(90deg,#fb923c,#f59e0b)', chip:'rgba(251,146,60,0.15)', border:'rgba(251,146,60,0.5)',text:'#fdba74' },
   ];
 
+  /* ── Streak Badge Tiers ── */
+  const STREAK_BADGES = [
+    { threshold: 100, icon: '🏆', name: 'Mythic',      color: '#22c55e', glow: 'rgba(34,197,94,0.5)'  },
+    { threshold: 60,  icon: '👑', name: 'Legend',       color: '#f59e0b', glow: 'rgba(245,158,11,0.5)' },
+    { threshold: 30,  icon: '💎', name: 'Diamond',      color: '#06b6d4', glow: 'rgba(6,182,212,0.5)'  },
+    { threshold: 14,  icon: '⚡', name: 'Unstoppable',  color: '#a855f7', glow: 'rgba(168,85,247,0.5)' },
+    { threshold: 7,   icon: '🔥', name: 'On Fire',      color: '#f97316', glow: 'rgba(249,115,22,0.5)' },
+    { threshold: 3,   icon: '⭐', name: 'Starter',      color: '#fbbf24', glow: 'rgba(251,191,36,0.5)' },
+  ];
+
   const DEFAULT_ACTIVITIES = [
     { name:'Morning Run',           emoji:'🏃' },
     { name:'Read 30 min',           emoji:'📚' },
@@ -139,6 +149,47 @@
     return 0; // future month
   }
   function weekOf(day) { return Math.ceil(day / 7); }
+
+  /* ── Cross-Month Streak Calculator ── */
+  function calcStreak(actId) {
+    let streak = 0;
+    let y = state.year, m = state.month;
+    let d = todayDayNum();
+    if (d <= 0) return 0;
+
+    // Walk backwards through days and months
+    let iterations = 0;
+    while (iterations < 400) {
+      const checks = (y === state.year && m === state.month)
+        ? state.checks
+        : loadChecks(y, m);
+
+      while (d >= 1) {
+        iterations++;
+        if (checks[chkKey(actId, d)] === 'done') { streak++; d--; }
+        else return streak;
+      }
+      // Move to previous month
+      m--;
+      if (m < 0) { m = 11; y--; }
+      d = daysInM(y, m);
+    }
+    return streak;
+  }
+
+  /* ── Get highest badge earned for a streak count ── */
+  function getBadge(streak) {
+    for (const b of STREAK_BADGES) {
+      if (streak >= b.threshold) return b;
+    }
+    return null;
+  }
+
+  /* ── Get all badges earned for a streak count ── */
+  function getEarnedBadges(streak) {
+    return STREAK_BADGES.filter(b => streak >= b.threshold);
+  }
+
   function isViewingCurrentMonth() {
     return state.year === state.todayYear && state.month === state.todayMonth;
   }
@@ -557,6 +608,9 @@
     const key   = chkKey(actId, day);
     const cur   = state.checks[key]; // 'done' | 'skip' | undefined
 
+    // Capture streak BEFORE the change for celebration detection
+    const streakBefore = (cur !== 'done') ? calcStreak(actId) : -1;
+
     let next;
     if (!cur)          { next = 'done'; }
     else if (cur==='done') { next = 'skip'; }
@@ -584,6 +638,18 @@
 
     saveChecks();
     renderDashboard();
+
+    // ── Celebration toast on badge threshold crossing ──
+    if (next === 'done' && streakBefore >= 0) {
+      const streakAfter = calcStreak(actId);
+      const badgeAfter = getBadge(streakAfter);
+      const badgeBefore = getBadge(streakBefore);
+      if (badgeAfter && (!badgeBefore || badgeAfter.threshold > badgeBefore.threshold)) {
+        const act = state.activities.find(a => a.id === actId);
+        const actName = act ? act.name : 'Activity';
+        showToast(`${badgeAfter.icon} ${streakAfter}-day streak on ${actName}! ${badgeAfter.name.toUpperCase()}!`);
+      }
+    }
   }
 
   /* ══════════════════════════════════════════════
@@ -907,19 +973,21 @@
     const today  = todayDayNum();
     const daysLeft = Math.max(0, state.daysInMonth - today);
     let totalDone = 0, bestAct = null, bestPct = -1, bestStreak = 0, bestStreakAct = null;
+    let totalBadges = 0;
 
     state.activities.forEach(act => {
       const d = countDone(act.id);
       totalDone += d;
       const p = today > 0 ? Math.round((d / state.daysInMonth) * 100) : 0;
       if (p > bestPct) { bestPct = p; bestAct = act; }
-      /* streak calc */
-      let s = 0;
-      for (let dd = today; dd >= 1; dd--) {
-        if (state.checks[chkKey(act.id, dd)]) s++; else break;
-      }
+      /* cross-month streak calc */
+      const s = calcStreak(act.id);
       if (s > bestStreak) { bestStreak = s; bestStreakAct = act; }
+      /* count earned badges */
+      totalBadges += getEarnedBadges(s).length;
     });
+
+    const bestBadge = getBadge(bestStreak);
 
     statCards.innerHTML = `
       <div class="s-card sc-cyan">
@@ -938,9 +1006,9 @@
         <div class="s-card-lbl">Best Activity (${bestPct}%)</div>
       </div>
       <div class="s-card sc-amber">
-        <div class="s-card-icon">🔥</div>
-        <div class="s-card-val">${bestStreak}</div>
-        <div class="s-card-lbl">Best Streak${bestStreakAct ? ' · '+bestStreakAct.emoji : ''}</div>
+        <div class="s-card-icon">${bestBadge ? bestBadge.icon : '🔥'}</div>
+        <div class="s-card-val">${bestStreak}<small style="font-size:0.75rem;color:var(--c-text2)">d</small></div>
+        <div class="s-card-lbl">Best Streak${bestStreakAct ? ' · '+bestStreakAct.emoji : ''}${bestBadge ? ' · '+bestBadge.name : ''}</div>
       </div>
       <div class="s-card sc-blue">
         <div class="s-card-icon">⏳</div>
@@ -948,9 +1016,9 @@
         <div class="s-card-lbl">Days Remaining</div>
       </div>
       <div class="s-card sc-rose">
-        <div class="s-card-icon">📋</div>
-        <div class="s-card-val">${state.activities.length}</div>
-        <div class="s-card-lbl">Active Habits</div>
+        <div class="s-card-icon">🎖️</div>
+        <div class="s-card-val">${totalBadges}</div>
+        <div class="s-card-lbl">Badges Earned</div>
       </div>`;
   }
 
@@ -1150,16 +1218,13 @@
 
   function renderActivityBreakdown() {
     if (!state.activities.length) { activityBreakdown.innerHTML = ''; return; }
-    const today = todayDayNum();
     let html = `<div class="breakdown-label">Activity-by-Activity Breakdown</div><div class="ab-rows">`;
     state.activities.forEach(act => {
       const done = countDone(act.id);
       const pct  = state.daysInMonth > 0 ? Math.round((done / state.daysInMonth) * 100) : 0;
       const p    = ACT_PALETTES[act.paletteIdx % ACT_PALETTES.length];
-      let streak = 0;
-      for (let d = today; d >= 1; d--) {
-        if (state.checks[chkKey(act.id, d)]) streak++; else break;
-      }
+      const streak = calcStreak(act.id);
+      const badge = getBadge(streak);
       html += `
         <div class="ab-row">
           <span class="ab-emoji">${act.emoji}</span>
@@ -1168,7 +1233,7 @@
             <div class="ab-bar-fill" style="width:${pct}%;background:${p.bar}"></div>
           </div>
           <span class="ab-pct">${pct}%</span>
-          <span class="ab-streak">${streak > 0 ? '🔥 '+streak+'d' : ''}</span>
+          <span class="ab-streak">${streak > 0 ? (badge ? badge.icon+' ' : '🔥 ')+streak+'d' : ''}</span>
         </div>`;
     });
     html += `</div>`;
@@ -1598,6 +1663,13 @@
             toggleTheme();
           }
           break;
+        case 'a':
+        case 'A':
+          if (!isAnyModalOpen()) {
+            e.preventDefault();
+            openAchievementsModal();
+          }
+          break;
         case '?':
           e.preventDefault();
           const scOverlay = $('shortcutsOverlay');
@@ -1651,6 +1723,120 @@
     bindKeyboardShortcuts();
   }
 
+  /* ══════════════════════════════════════════════
+     ACHIEVEMENTS MODAL
+     ══════════════════════════════════════════════ */
+  function openAchievementsModal() {
+    const overlay = $('achievementsOverlay');
+    if (!overlay) return;
+    renderAchievementsContent();
+    closeAllModals();
+    overlay.classList.add('open');
+  }
+
+  function renderAchievementsContent() {
+    const container = $('achievementsContent');
+    if (!container) return;
+
+    let longestStreak = 0;
+    let longestAct = null;
+    let totalBadges = 0;
+
+    // Build per-activity data
+    const actData = state.activities.map(act => {
+      const streak = calcStreak(act.id);
+      const badge = getBadge(streak);
+      const earned = getEarnedBadges(streak);
+      totalBadges += earned.length;
+      if (streak > longestStreak) { longestStreak = streak; longestAct = act; }
+      return { act, streak, badge, earned };
+    });
+
+    // Sort by streak descending
+    actData.sort((a, b) => b.streak - a.streak);
+
+    let html = '';
+
+    // ── Summary stats ──
+    const longestBadge = getBadge(longestStreak);
+    html += `<div class="ach-summary">`;
+    html += `<div class="ach-summary-card">`;
+    html += `<span class="ach-summary-val">${longestStreak}<small>d</small></span>`;
+    html += `<span class="ach-summary-lbl">Longest Streak${longestAct ? ' · '+longestAct.emoji : ''}${longestBadge ? ' · '+longestBadge.name : ''}</span>`;
+    html += `</div>`;
+    html += `<div class="ach-summary-card">`;
+    html += `<span class="ach-summary-val">${totalBadges}</span>`;
+    html += `<span class="ach-summary-lbl">Total Badges Earned</span>`;
+    html += `</div>`;
+    html += `<div class="ach-summary-card">`;
+    html += `<span class="ach-summary-val">${state.activities.length}</span>`;
+    html += `<span class="ach-summary-lbl">Active Habits</span>`;
+    html += `</div>`;
+    html += `</div>`;
+
+    // ── Badge legend ──
+    html += `<div class="ach-legend">`;
+    html += `<div class="ach-legend-title">Badge Tiers</div>`;
+    html += `<div class="ach-legend-grid">`;
+    // Reverse so it goes from lowest to highest
+    [...STREAK_BADGES].reverse().forEach(b => {
+      html += `<div class="ach-legend-item">`;
+      html += `<span class="ach-legend-icon">${b.icon}</span>`;
+      html += `<span class="ach-legend-name">${b.name}</span>`;
+      html += `<span class="ach-legend-days">${b.threshold}d</span>`;
+      html += `</div>`;
+    });
+    html += `</div></div>`;
+
+    // ── Per-activity streaks ──
+    html += `<div class="ach-activities-title">Your Streaks</div>`;
+
+    if (actData.length === 0) {
+      html += `<div class="ach-empty">No activities yet — add some to start building streaks!</div>`;
+    } else {
+      html += `<div class="ach-list">`;
+      actData.forEach(({ act, streak, badge, earned }) => {
+        const p = ACT_PALETTES[act.paletteIdx % ACT_PALETTES.length];
+        const barPct = Math.min(100, (streak / 100) * 100);
+        html += `<div class="ach-row">`;
+        html += `<div class="ach-row-left">`;
+        html += `<span class="ach-row-emoji">${act.emoji}</span>`;
+        html += `<div class="ach-row-info">`;
+        html += `<span class="ach-row-name">${escHtml(act.name)}</span>`;
+        html += `<span class="ach-row-streak">${streak > 0 ? streak+' day streak' : 'No active streak'}</span>`;
+        html += `</div></div>`;
+        html += `<div class="ach-row-center">`;
+        html += `<div class="ach-bar-wrap"><div class="ach-bar-fill" style="width:${barPct}%;background:${p.bar}"></div></div>`;
+        html += `</div>`;
+        html += `<div class="ach-row-badges">`;
+        // Show all badge tiers, earned ones highlighted, unearned dimmed
+        [...STREAK_BADGES].reverse().forEach(b => {
+          const isEarned = streak >= b.threshold;
+          html += `<span class="ach-badge${isEarned ? '' : ' ach-badge-locked'}" `;
+          html += `style="${isEarned ? 'border-color:'+b.color+';box-shadow:0 0 8px '+b.glow : ''}" `;
+          html += `title="${b.name} — ${b.threshold} day streak${isEarned ? ' ✓ Earned!' : ''}">`;
+          html += b.icon;
+          html += `</span>`;
+        });
+        html += `</div></div>`;
+      });
+      html += `</div>`;
+    }
+
+    container.innerHTML = html;
+  }
+
+  function bindAchievementsModal() {
+    const achBtn = $('achievementsBtn');
+    const overlay = $('achievementsOverlay');
+    const closeBtn = $('closeAchievements');
+    if (achBtn) achBtn.addEventListener('click', openAchievementsModal);
+    if (closeBtn) closeBtn.addEventListener('click', () => overlay.classList.remove('open'));
+    if (overlay) overlay.addEventListener('click', e => {
+      if (e.target === overlay) overlay.classList.remove('open');
+    });
+  }
+
   /* ── Toast ── */
   let toastTimer;
   function showToast(msg) {
@@ -1665,5 +1851,6 @@
     initTheme();
     init();
     bindNewFeatures();
+    bindAchievementsModal();
   });
 })();
