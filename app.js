@@ -951,6 +951,36 @@
     renderActivityBreakdown();
     renderWeeklyBars();
     updateHeaderPct();
+    updateFooterStats();
+  }
+
+  /* ── Footer Stats ── */
+  function updateFooterStats() {
+    const el = (id) => document.getElementById(id);
+    const fH = el('fsTotalHabits');
+    const fT = el('fsTotalTicks');
+    const fS = el('fsStreak');
+    if (!fH) return;
+
+    // Habits tracked
+    fH.textContent = state.activities.length;
+
+    // Total ticks this month
+    let ticks = 0;
+    state.activities.forEach(act => {
+      for (let d = 1; d <= state.daysInMonth; d++) {
+        if (state.checks[chkKey(act.id, d)] === 'done') ticks++;
+      }
+    });
+    fT.textContent = ticks;
+
+    // Best streak across all activities
+    let best = 0;
+    state.activities.forEach(act => {
+      const s = calcStreak(act.id);
+      if (s > best) best = s;
+    });
+    fS.textContent = best;
   }
 
   /* ── Global % — only counts 'done', not 'skip' ── */
